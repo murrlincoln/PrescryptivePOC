@@ -1,0 +1,22 @@
+{
+  "name": "prescryptivepoc",
+  "version": "1.0.0",
+  "description": "Blockchain payment system",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/murrlincoln/PrescryptivePOC.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/murrlincoln/PrescryptivePOC/issues"
+  },
+  "homepage": "https://github.com/murrlincoln/PrescryptivePOC#readme",
+  "dependencies": {
+    "@openzeppelin/contracts": "^4.2.0"
+  }
+}
