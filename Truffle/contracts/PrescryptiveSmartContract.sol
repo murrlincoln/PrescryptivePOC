@@ -12,8 +12,8 @@ contract PrescryptiveSmartContract is AccessControl {
     ERC20 public stablecoin;
 
     constructor(address _erc20) {
-        //make the sender both the admin and have withdraw rights
-        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        //make the sender (the payer) both the admin and have withdraw rights
+        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender); 
         _setupRole(WITHDRAW_ROLE, msg.sender);
 
         //add the interaction interface with the token
@@ -25,34 +25,24 @@ contract PrescryptiveSmartContract is AccessControl {
     //depending on setup of the smart contract, the withdraw role may be unnecessary, 
     //if there is only one entity who should have access
 
-    //TODO - determine if onlyRole is required, due to the modifier already existing within the grant/revoke function
     /**
     * @dev Adds another withdrawer role to the smart contract, which can withdraw funds and do nothing else
      */
-    function addWithdrawer(address _newWithdrawer) public onlyRole(DEFAULT_ADMIN_ROLE) {
+    function addWithdrawer(address _newWithdrawer) public {
         grantRole(WITHDRAW_ROLE, _newWithdrawer);
     }
 
     /**
      * @dev removes the withdraw role from an address, meaning they can no longer withdraw funds
      */
-    function removeWithdrawer(address _withdrawer) public onlyRole(DEFAULT_ADMIN_ROLE) {
+    function removeWithdrawer(address _withdrawer) public {
         revokeRole(WITHDRAW_ROLE, _withdrawer);
     }
 
     /**
-     * @dev Approves the token transferring from the caller to the smart contract. First step in a deposit.
-     * Should only be done once per depositer, otherwise it would be redundant.
-     */
-    function approveTokenTransfer() external {
-        stablecoin.approve(address(this), 79228162514260000000000000000);
-    }
-
-
-    /**
      * @dev - When funds are deposited through this function in the smart contract, 
         they will be sent to Aave and turn into yield-bearing
-        Note: Function will fail if approval not given first.
+        Note: Function will fail if approval (stablecoin.approve(smartContractAddress, 79228162514260000000000000000)) not given first.
      */
     function depositFunds(uint256 _value) public {
         //Transfers token from caller to contract, then takes the token and converts it to interest-bearing via Aave
@@ -65,8 +55,8 @@ contract PrescryptiveSmartContract is AccessControl {
      * @dev - Withdraws funds from Aave then to the msg.sender 
      */
     function withdrawFunds(uint256 _value) public onlyRole(WITHDRAW_ROLE) {
+        //TODO - Add Aave integration (not possible until testnet release)
         stablecoin.transfer(msg.sender, _value);
-        //todo - need emit here?
     }
 
 

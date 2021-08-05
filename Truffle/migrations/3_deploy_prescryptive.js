@@ -1,7 +1,7 @@
-const PrescryptiveSmartContrac = artifacts.require("PrescryptiveSmartContrac");
+const PrescryptiveSmartContract = artifacts.require("PrescryptiveSmartContract");
 
-var account2 = '0xB31A83da6adCb22d3665CbcB96178323B05472A3'
+var account2 = '0x0183F5730F2B7ef8cbBaBbeAc6Fe0120AA524170'
 
 module.exports = function (deployer) {
-  deployer.deploy(PrescryptiveSmartContrac, account2);
+  deployer.deploy(PrescryptiveSmartContract, account2);
 };
