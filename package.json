@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/murrlincoln/PrescryptivePOC#readme",
   "dependencies": {
-    "@openzeppelin/contracts": "^4.2.0"
+    "@openzeppelin/contracts": "^4.2.0",
+    "create-react-app": "^4.0.3"
   }
 }
