@@ -4,10 +4,10 @@ import { getDefaultProvider } from "@ethersproject/providers";
 import { useQuery } from "@apollo/react-hooks";
 import { ethers } from 'ethers';
 
-import { Body, Button, Header} from "./components";
+import { Body, Button, Header } from "./components";
 import useWeb3Modal from "./hooks/useWeb3Modal";
 
-//import Owner from "./components/Owner";
+import Owner from "./components/Owner";
 
 
 import { addresses, abis } from "@project/contracts";
@@ -15,12 +15,7 @@ import GET_TRANSFERS from "./graphql/subgraph";
 import { Provider } from "web3modal";
 
 var address;
-var owner;
-var isOwnerVar = false;
-
-function timeout(delay) {
-  return new Promise( res => setTimeout(res,delay));
-}
+var owner = '0x5452bac821e6D53DD69E4D5C5D65Bc188386eEA8';
 
 async function getOwner() {
   // Should replace with the end-user wallet, e.g. Metamask
@@ -34,7 +29,7 @@ async function getOwner() {
   console.log("Owner:", owner);
 
   return owner;
-  
+
 }
 
 async function getAllowance(provider) {
@@ -44,11 +39,11 @@ async function getAllowance(provider) {
 
   const signer = await provider.getSigner(0);
   const owner = await signer.getAddress();
-  
+
   console.log("Account:", owner.toString());
   console.log(signer.address);
-  
-  
+
+
 
   var allowance = await contract.allowance(owner.toString(), spender);
 
@@ -68,20 +63,20 @@ async function transfer(provider) {
   );
 
   //if the user enters a null value, nothing happens
-  if (valueStr !== null || valueStr > '0.1' ) {
+  if (valueStr !== null || valueStr > '0.1') {
 
     // if (getAllowance(provider) < valueStr) {
     //   approveTransfer(provider);
     // }
 
     await contract.depositFunds(valueStr);
-    console.log( 'Pending deposit...' );
+    console.log('Pending deposit...');
 
     return;
   }
 
   console.log('Failure, user did not enter an amount to deposit or entered a 0 value');
-  
+
 }
 
 //approve the transfer using the ERC20 contract info
@@ -107,114 +102,16 @@ function WalletButton({ provider, loadWeb3Modal, logoutOfWeb3Modal }) {
   );
 }
 
-async function removeWithdrawer(provider) {
-  var contract = new Contract(addresses.PrescryptiveSmartContract, abis.prescryptiveSmartContract, provider.getSigner(0));
-
-  const valueStr = prompt(
-    'What address would you like to remove the withdraw role from?'
-  );
-
-  await contract.removeWithdrawer(valueStr);
-}
-
-async function addWithdrawer(provider) {
-  var contract = new Contract(addresses.PrescryptiveSmartContract, abis.prescryptiveSmartContract, provider.getSigner(0));
-
-  const valueStr = prompt(
-    'What address would you like to give the withdraw role to?'
-  );
-
-  await contract.addWithdrawer(valueStr);
-}
-
-async function addConfirmer(provider) {
-  var contract = new Contract(addresses.PrescryptiveSmartContract, abis.prescryptiveSmartContract, provider.getSigner(0));
-
-  const valueStr = prompt(
-    'What address would you like to give the confirm role to?'
-  );
-
-  await contract.addConfirmer(valueStr);
-}
-
-
-async function removeConfirmer(provider) {
-  var contract = new Contract(addresses.PrescryptiveSmartContract, abis.prescryptiveSmartContract, provider.getSigner(0));
-
-  const valueStr = prompt(
-    'What address would you like to remove the confrim role from?'
-  );
-
-  await contract.removeConfirmer(valueStr);
-}
-
-
-async function isOwner() {
-  console.log("address:", address);
-  console.log("owner:", owner);
-  console.log(owner === address);
-
-  if (owner === address) {
-    isOwnerVar = true;
-  }
-
-  return owner === address;
-}
-
-function Owner({isOwnerVar, provider}) {
-  
-  return (
-      <div>
-      
-
-      {isOwnerVar ? (
-          
-      <>
-      Owner Only Functions:<br/>
-      <Button onClick={() => addWithdrawer(provider)}>
-      Create new Withdrawer
-      </Button>
-
-      <Button onClick={() => removeWithdrawer(provider)}>
-      Remove a Withdrawer
-      </Button>
-
-      <Button onClick={() => addConfirmer(provider)}>
-      Create new Confirmer
-      </Button>
-
-      <Button onClick={() => removeConfirmer(provider)}>
-      Remove a Confirmer
-      </Button>
-      
-
-
-      <br/><br/>
-      </>) : 
-      (<>
-       <p>Not Owner</p>
-       
-       
-       </>)}
-      </div>
-
-  )
-}
-
 async function getAddress(provider) {
   const signer = provider.getSigner(0);
-  const account = await signer.getAddress();
-
-  address = account;
+  address = await signer.getAddress();
 }
 
 
 function App() {
   const { loading, error, data } = useQuery(GET_TRANSFERS);
   const [provider, loadWeb3Modal, logoutOfWeb3Modal] = useWeb3Modal();
-  const [isOwnerVar, isOwner] = useState(function isOwner() {
-    return owner === address
-  })
+  const [isOwnerVar, isOwner] = useState(false);
 
   getOwner(); //stores the owner in owner var
 
@@ -229,54 +126,62 @@ function App() {
   }, [loading, error, data]);
 
   //TODO - Fix the Owner Component so that it only shows up when the address matches the owner
- 
+
 
   return (
     <div>
       <Header>
-        {provider ? (<> <h3>Address: {address}</h3> </>) : (<> </>) }
+        {provider ? (<> <h3>Address: {address}</h3> </>) : (<> </>)}
         <WalletButton provider={provider} loadWeb3Modal={loadWeb3Modal} logoutOfWeb3Modal={logoutOfWeb3Modal} />
       </Header>
 
 
 
       <Body>
-      
-      {provider ? (
-        
-        <>
 
-        
+        {provider ? (
 
-        <Button onClick={() => transfer(provider)}>
-          Transfer to smart contract
-        </Button>
-
-        <Button onClick={() => approveTransfer(provider)}>
-          Approve the transfer
-        </Button>
-        
-        <Button onClick={() => getAllowance(provider)}>
-          Get allowance
-        </Button> 
-        
-        <Button onClick={() => isOwner(provider)}>
-          Open Owner Terminal
-        </Button> 
-        
-
-        <Owner isOwnerVar={isOwnerVar} provider={provider} />
-        </>
-
-        
-
-        
+          <>
 
 
-      ) : <> <p>
-        Please install a Web3 provider like{' '}
-        <a href="https://metamask.io/">MetaMask</a> to use this app.
-      </p> </>}
+            <Button onClick={() => transfer(provider)}>
+              Transfer to smart contract
+            </Button>
+            <br/>
+
+            <Button onClick={() => approveTransfer(provider)}>
+              Approve the transfer
+            </Button>
+            <br/>
+
+            <Button onClick={() => getAllowance(provider)}>
+              Get allowance
+            </Button>
+            <br/>
+
+            <Button onClick={() => isOwner(address === owner)}> {/* Todo - Give alert when not owner */}
+              Open Owner Terminal (only works if you are owner)
+            </Button>
+            <br/>
+          </>
+
+
+
+
+
+
+        ) : <> <p>
+          Please install a Web3 provider like{' '}
+          <a href="https://metamask.io/">MetaMask</a> to use this app.
+        </p> </>}
+
+        {provider && isOwnerVar ? (
+
+          <><Owner provider={provider}/> </>
+
+        ) : (
+          <></>
+        ) }
 
 
         <Button onClick={() => getOwner()}>

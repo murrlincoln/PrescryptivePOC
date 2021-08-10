@@ -3,48 +3,75 @@ import { Contract } from "@ethersproject/contracts";
 import { addresses, abis } from "@project/contracts";
 import { getDefaultProvider } from "@ethersproject/providers";
 import { Provider } from "web3modal";
-
-async function getOwner() {
-    // Should replace with the end-user wallet, e.g. Metamask
-    const defaultProvider = getDefaultProvider('https://ropsten.infura.io/v3/fee501e8a2874b79b1bf71b3a59b86ac');
-    // Create an instance of an ethers.js Contract
-    // Read more about ethers.js on https://docs.ethers.io/v5/api/contract/contract/
-    var contract = new Contract(addresses.PrescryptiveSmartContract, abis.prescryptiveSmartContract, defaultProvider);
-  
-    const owner = await contract.owner();
-  
-    console.log(owner);
-    return owner;
-    
-  }
+import {Button} from "./";
 
 
-async function isOwner(provider) {
+async function removeWithdrawer(provider) {
+  var contract = new Contract(addresses.PrescryptiveSmartContract, abis.prescryptiveSmartContract, provider.getSigner(0));
 
-    const signer = provider.getSigner();
-    const account = await signer.getAddress();
-  
-    console.log(await getOwner() == account);
-  
-    return await getOwner() == account;
-  }
+  const valueStr = prompt(
+    'What address would you like to remove the withdraw role from?'
+  );
+
+  await contract.removeWithdrawer(valueStr);
+}
 
 async function addWithdrawer(provider) {
+  var contract = new Contract(addresses.PrescryptiveSmartContract, abis.prescryptiveSmartContract, provider.getSigner(0));
 
+  const valueStr = prompt(
+    'What address would you like to give the withdraw role to?'
+  );
+
+  await contract.addWithdrawer(valueStr);
+}
+
+async function addConfirmer(provider) {
+  var contract = new Contract(addresses.PrescryptiveSmartContract, abis.prescryptiveSmartContract, provider.getSigner(0));
+
+  const valueStr = prompt(
+    'What address would you like to give the confirm role to?'
+  );
+
+  await contract.addConfirmer(valueStr);
 }
 
 
+async function removeConfirmer(provider) {
+  var contract = new Contract(addresses.PrescryptiveSmartContract, abis.prescryptiveSmartContract, provider.getSigner(0));
+
+  const valueStr = prompt(
+    'What address would you like to remove the confrim role from?'
+  );
+
+  await contract.removeConfirmer(valueStr);
+}
+
 function Owner({provider}) {
 
+  return (
+    <div>
+    Owner Only Functions:<br />
+    <Button onClick={() => addWithdrawer(provider)}>
+      Create new Withdrawer
+    </Button>
 
-    return (
-        <div>test
-        {isOwner(provider) ? (
-            
-        <> <p>Owner</p></>) : (<> <p>Not Owner</p></>)}
-        </div>
+    <Button onClick={() => removeWithdrawer(provider)}>
+      Remove a Withdrawer
+    </Button>
 
-    )
+    <Button onClick={() => addConfirmer(provider)}>
+      Create new Confirmer
+    </Button>
+
+    <Button onClick={() => removeConfirmer(provider)}>
+      Remove a Confirmer
+    </Button>
+    
+    </div>
+    
+  )
+
 }
 
 export default Owner
