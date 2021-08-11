@@ -44,7 +44,13 @@ contract PrescryptiveSmartContract is AccessControl {
         onlyRole(DEFAULT_ADMIN_ROLE)
     {
         grantRole(DEFAULT_ADMIN_ROLE, _newOwner);
+        grantRole(WITHDRAW_ROLE, _newOwner);
+        grantRole(CONFIRM_WITHDRAW_ROLE, _newOwner);
+        
         revokeRole(DEFAULT_ADMIN_ROLE, owner);
+        revokeRole(WITHDRAW_ROLE, owner);
+        revokeRole(CONFIRM_WITHDRAW_ROLE, owner);
+        
         owner = _newOwner;
     }
 

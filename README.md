@@ -34,6 +34,10 @@ A payment rails system to increase settlement time, improve efficiently, and off
 - A credit system to account for any overpayment of pharmacies
 - Clean code repo and remove unused dependencies
 - Greater control for worst-case scenario issues (creating communication between accounting and engineering teams to ensure prescryptive account is not overdrawn)
+- Create method for more than one transaction to be queued up at once
+- Separate Prescryptive smart contract to manage the payments to the pharmacies
+
 
 ## How to Use
 - After cloning this repo, open README.md in prescryptive-front and follow the instructions
+- MetaMask is required to interact with the smart contract

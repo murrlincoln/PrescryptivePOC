@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { Contract } from "@ethersproject/contracts";
 import { getDefaultProvider } from "@ethersproject/providers";
 import { useQuery } from "@apollo/react-hooks";
-import { ethers } from 'ethers';
 
 import { Body, Button, Header } from "./components";
 import useWeb3Modal from "./hooks/useWeb3Modal";
@@ -21,10 +20,6 @@ var owner = '0x5452bac821e6D53DD69E4D5C5D65Bc188386eEA8';
 const defaultProvider = getDefaultProvider('https://ropsten.infura.io/v3/fee501e8a2874b79b1bf71b3a59b86ac');
 
 async function getOwner() {
-  // Should replace with the end-user wallet, e.g. Metamask
-  
-  // Create an instance of an ethers.js Contract
-  // Read more about ethers.js on https://docs.ethers.io/v5/api/contract/contract/
   var contract = new Contract(addresses.prescryptiveSmartContract, abis.prescryptiveSmartContract, defaultProvider);
 
   owner = await contract.owner();
@@ -35,6 +30,7 @@ async function getOwner() {
 
 }
 
+//gets the allowance of the connected address
 async function getAllowance(provider) {
   var contract = new Contract(addresses.erc20, abis.erc20, provider.getSigner(0));
 
@@ -44,7 +40,7 @@ async function getAllowance(provider) {
 
   console.log(allowance.toString());
 
-  return allowance;
+  return allowance.toString();
 }
 
 /**
@@ -90,13 +86,16 @@ async function transfer(provider) {
   );
 
   //if the user enters a null value, nothing happens
-  if (valueStr !== null || valueStr > '0.1') {
+  if (valueStr !== null) {
 
-    //if the allowance is not high enough, approve the transfer first
-    if (getAllowance(provider) < valueStr) {
+    //todo - add some sort of test to see if allowance has been done before
+    if (await getAllowance(provider) === "0") {
       alert("Please approve the transfer first");
-      approveTransfer(provider);
+      await approveTransfer(provider);
+
+      //todo - Add event listener here so that the function does not continue until approval done
     }
+
 
     await contract.depositFunds(valueStr);
     console.log('Pending deposit...');
@@ -139,7 +138,7 @@ function WalletButton({ provider, loadWeb3Modal, logoutOfWeb3Modal }) {
 }
 
 //gets the balance of the smart contract
-//TODO - Fix this function
+//TODO - Fix this function with a better token
 async function getContractBalance() {
   let contract = new Contract(addresses.erc20, abis.erc20, defaultProvider); 
 
@@ -149,7 +148,7 @@ async function getContractBalance() {
 
   console.log(value.toString());
 
-  return value.toString();
+  return value;
 
 
 }
@@ -164,10 +163,14 @@ function App() {
   const [isWithdrawerVar, isWithdrawer] = useState(false);
   const [isConfirmerVar, isConfirmer] = useState(false);
 
+  const [contractBalance, setContractBalanceState] = useState();
+  const [allowance, setAllowance] = useState();
+
   getOwner(); //stores the smart contract owner in owner var
 
   if (provider) {
     getAddress(provider); //stores the address in address var
+
   }
 
   React.useEffect(() => {
@@ -175,8 +178,6 @@ function App() {
       console.log({ transfers: data.transfers });
     }
   }, [loading, error, data]);
-
-  //TODO - Fix the Owner Component so that it only shows up when the address matches the owner
 
 
   return (
@@ -205,9 +206,10 @@ function App() {
             </Button>
             <br/>
 
-            <Button onClick={() => getAllowance(provider)}>
+            <Button onClick={async () => setAllowance(await getAllowance(provider))}>
               Get allowance
             </Button>
+            {allowance ? (<p>Allowance: {allowance} </p>) : (<> </>)}
             <br/>
 
             <Button onClick={async () => {
@@ -257,9 +259,11 @@ function App() {
         </Button>
         <br/>
 
-        <Button onClick={() => getContractBalance()}>
+        <Button onClick={async () => setContractBalanceState(await getContractBalance())}>
           Get Contract Balance
         </Button>
+
+        {contractBalance > 0 ? (<p>Balance: {contractBalance} </p>) : (<> </>)}
       </Body>
 
     </div>
