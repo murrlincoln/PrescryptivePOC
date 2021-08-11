@@ -22,6 +22,7 @@ A payment rails system to increase settlement time, improve efficiently, and off
 
 ### Beta (in-progress)
 - Deployment on Mumbai (Polygon) testnet
+- Events and emits (Solidity) and event listeners (frontend) 
 - Aave integration
 - Frontend with better UI and greater automation (no more button clicking to confirm role)
 
