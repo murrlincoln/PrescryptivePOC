@@ -34,6 +34,7 @@ contract PrescryptiveSmartContract is AccessControl {
 
     //depending on setup of the smart contract, the withdraw role may be unnecessary,
     //if there is only one entity who should have access
+    //TODO - Revoke all roles from owner and grant all roles to new person
 
     /**
      * @dev - Changes the owner to a new address
@@ -101,6 +102,8 @@ contract PrescryptiveSmartContract is AccessControl {
 
         withdrawValue = _value;
     }
+
+    //TODO - Add cancelWithdraw method
 
     /**
      * @dev - Withdraws funds from Aave then to the msg.sender. Only works if the withdraw has been initated by the WITHDRAW_ROLE. Double confirms the value and toPay to ensure that no malicious

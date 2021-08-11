@@ -7,7 +7,7 @@ import {Button} from "./";
 
 
 async function removeWithdrawer(provider) {
-  var contract = new Contract(addresses.PrescryptiveSmartContract, abis.prescryptiveSmartContract, provider.getSigner(0));
+  var contract = new Contract(addresses.prescryptiveSmartContract, abis.prescryptiveSmartContract, provider.getSigner(0));
 
   const valueStr = prompt(
     'What address would you like to remove the withdraw role from?'
@@ -17,7 +17,7 @@ async function removeWithdrawer(provider) {
 }
 
 async function addWithdrawer(provider) {
-  var contract = new Contract(addresses.PrescryptiveSmartContract, abis.prescryptiveSmartContract, provider.getSigner(0));
+  var contract = new Contract(addresses.prescryptiveSmartContract, abis.prescryptiveSmartContract, provider.getSigner(0));
 
   const valueStr = prompt(
     'What address would you like to give the withdraw role to?'
@@ -27,7 +27,7 @@ async function addWithdrawer(provider) {
 }
 
 async function addConfirmer(provider) {
-  var contract = new Contract(addresses.PrescryptiveSmartContract, abis.prescryptiveSmartContract, provider.getSigner(0));
+  var contract = new Contract(addresses.prescryptiveSmartContract, abis.prescryptiveSmartContract, provider.getSigner(0));
 
   const valueStr = prompt(
     'What address would you like to give the confirm role to?'
@@ -38,7 +38,7 @@ async function addConfirmer(provider) {
 
 
 async function removeConfirmer(provider) {
-  var contract = new Contract(addresses.PrescryptiveSmartContract, abis.prescryptiveSmartContract, provider.getSigner(0));
+  var contract = new Contract(addresses.prescryptiveSmartContract, abis.prescryptiveSmartContract, provider.getSigner(0));
 
   const valueStr = prompt(
     'What address would you like to remove the confrim role from?'
