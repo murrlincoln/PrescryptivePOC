@@ -18,11 +18,18 @@
  *
  */
 
-// const HDWalletProvider = require('@truffle/hdwallet-provider');
+const HDWalletProvider = require('../node_modules/truffle-hdwallet-provider');
 // const infuraKey = "fj4jll3k.....";
 //
 // const fs = require('fs');
-// const mnemonic = fs.readFileSync(".secret").toString().trim();
+// require('dotenv').config();
+
+//TODO - HIDE THIS BEFORE MAINNET RELEASE (CURRENTLY HAS NO FUNDS, BUT IT WILL)
+ const mnemonic = "soda borrow glimpse oyster improve mimic cheap cushion butter shield mistake work";
+
+ //to fix error with too many listeners
+ require('events').EventEmitter.prototype._maxListeners = 70;
+ require('events').defaultMaxListeners = 70;
 
 module.exports = {
   /**
@@ -47,6 +54,15 @@ module.exports = {
      port: 8545,            // Standard Ethereum port (default: none)
      network_id: "*",       // Any network (default: none)
     },
+
+    kovan: {
+      provider: function() {
+        return new HDWalletProvider(mnemonic, "https://kovan.infura.io/v3/fee501e8a2874b79b1bf71b3a59b86ac");
+      },
+      network_id: 42,
+      gasPrice: 20000000000, // 20 GWEI
+      gas: 3716887 // gas limit, set any number you want
+    }
     // Another network with more advanced options...
     // advanced: {
     // port: 8777,             // Custom port

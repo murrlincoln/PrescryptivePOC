@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.6;
 import "../../node_modules/@openzeppelin/contracts/access/AccessControl.sol"; //allows for different roles to be created
+//import "../../node_modules/@aave/protocol-v2/contracts/protocol/lendingpool/LendingPool.sol";
 import "../../node_modules/@openzeppelin/contracts/token/ERC20/ERC20.sol"; //the ERC20 interface, so that we can transfer tokens to and from smart contract
+
 
 contract PrescryptiveSmartContract is AccessControl {
     //Role used for adding a withdrawer
@@ -19,6 +21,10 @@ contract PrescryptiveSmartContract is AccessControl {
     uint256 public withdrawValue; //the value of the withdrawal
     address public withdrawAddress; //the address of the withdrawal
     address public owner; //DEFAULT_ADMIN_ROLE address
+
+    address public pool = 0xE0fBa4Fc209b4948668006B2bE61711b7f465bAe; //The Aave Smart Contract Pool (currently set to DAI on Kovan)
+
+    //LendingPool private stablecoinPool = LendingPool(pool); //the lending pool
 
     constructor(address _erc20) {
         //make the sender (the payer) both the admin and have withdraw rights
@@ -46,7 +52,7 @@ contract PrescryptiveSmartContract is AccessControl {
         grantRole(DEFAULT_ADMIN_ROLE, _newOwner);
         grantRole(WITHDRAW_ROLE, _newOwner);
         grantRole(CONFIRM_WITHDRAW_ROLE, _newOwner);
-        
+
         revokeRole(DEFAULT_ADMIN_ROLE, owner);
         revokeRole(WITHDRAW_ROLE, owner);
         revokeRole(CONFIRM_WITHDRAW_ROLE, owner);
@@ -92,8 +98,22 @@ contract PrescryptiveSmartContract is AccessControl {
         //Transfers token from caller to contract, then takes the token and converts it to interest-bearing via Aave
         stablecoin.transferFrom(msg.sender, address(this), _value);
 
+
+
         //TODO - Add Aave integration (not possible until testnet release)
+        //depositToAave(pool, erc20Contract, address(this), _value);
+
+
     }
+
+    /**
+     * @dev - When funds are deposited through this function in the smart contract, 
+        they will be sent to Aave and turn into yield-bearing
+        Note: Function will fail if approval (stablecoin.approve(pool, 79228162514260000000000000000)) not given first.
+     */
+//     function depositFunds(uint256 amount) public {
+//         stablecoinPool.deposit(erc20Contract, amount, msg.sender);
+//   }
 
     /**
      * @dev - The first step in the withdrawal process, sets the address to pay and the value, and also tells the confirmer that everything is ready to check
@@ -109,7 +129,14 @@ contract PrescryptiveSmartContract is AccessControl {
         withdrawValue = _value;
     }
 
-    //TODO - Add cancelWithdraw method
+    /**
+     * @dev - Cancels the withdraw and resets all variables. Would be used in the case of a typo from the initial withdrawer
+     */
+    function cancelWithdraw() public onlyRole(CONFIRM_WITHDRAW_ROLE) {
+        withdrawInitated = false;
+        withdrawAddress = owner;
+        withdrawValue = 0;
+    }
 
     /**
      * @dev - Withdraws funds from Aave then to the msg.sender. Only works if the withdraw has been initated by the WITHDRAW_ROLE. Double confirms the value and toPay to ensure that no malicious
