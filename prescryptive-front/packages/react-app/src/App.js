@@ -15,6 +15,7 @@ import { addresses, abis } from "@project/contracts";
 import GET_TRANSFERS from "./graphql/subgraph";
 import { Provider } from "web3modal";
 
+
 var address;
 var owner = '0x5452bac821e6D53DD69E4D5C5D65Bc188386eEA8';
 const defaultProvider = getDefaultProvider('https://ropsten.infura.io/v3/fee501e8a2874b79b1bf71b3a59b86ac');
@@ -27,6 +28,12 @@ async function getOwner() {
   console.log("Owner:", owner);
 
   return owner;
+
+}
+
+
+//deposits funds to Aave (note: Only works on Kovan)
+async function depositToAave(provider) {
 
 }
 

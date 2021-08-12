@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.6;
+pragma solidity >=0.4.22 <0.9.0;
 import "../../node_modules/@openzeppelin/contracts/access/AccessControl.sol"; //allows for different roles to be created
 //import "../../node_modules/@aave/protocol-v2/contracts/protocol/lendingpool/LendingPool.sol";
 import "../../node_modules/@openzeppelin/contracts/token/ERC20/ERC20.sol"; //the ERC20 interface, so that we can transfer tokens to and from smart contract
@@ -106,14 +106,14 @@ contract PrescryptiveSmartContract is AccessControl {
 
     }
 
-    /**
-     * @dev - When funds are deposited through this function in the smart contract, 
-        they will be sent to Aave and turn into yield-bearing
-        Note: Function will fail if approval (stablecoin.approve(pool, 79228162514260000000000000000)) not given first.
-     */
-//     function depositFunds(uint256 amount) public {
-//         stablecoinPool.deposit(erc20Contract, amount, msg.sender);
-//   }
+    // /**
+    //  * @dev - When funds are deposited through this function in the smart contract, 
+    //     they will be sent to Aave and turn into yield-bearing
+    //     Note: Function will fail if approval (stablecoin.approve(LendingPoolCore, 79228162514260000000000000000)) not given first.
+    //  */
+    // function depositFunds(uint256 amount) public {
+    //     stablecoinPool.deposit(erc20Contract, amount, msg.sender);
+    // }
 
     /**
      * @dev - The first step in the withdrawal process, sets the address to pay and the value, and also tells the confirmer that everything is ready to check
@@ -157,7 +157,7 @@ contract PrescryptiveSmartContract is AccessControl {
 
         if (_withdraw) {
             //TODO - Add Aave integration (not possible until testnet release)
-            stablecoin.transfer(_toPay, _value); //withdraws to the previously defined address and value
+            //stablecoin.transfer(_toPay, _value); //withdraws to the previously defined address and value
         }
     }
 
@@ -167,5 +167,7 @@ contract PrescryptiveSmartContract is AccessControl {
     function ownerWithdraw(uint256 _value) public onlyRole(DEFAULT_ADMIN_ROLE) {
         //TODO - Add aave integration
         stablecoin.transfer(msg.sender, _value);
+        //stablecoinPool.withdraw(erc20Contract, _value, msg.sender);
+
     }
 }
