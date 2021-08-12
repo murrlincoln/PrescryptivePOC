@@ -15,10 +15,13 @@ import { addresses, abis } from "@project/contracts";
 import GET_TRANSFERS from "./graphql/subgraph";
 import { Provider } from "web3modal";
 
+import { ethers } from "ethers";
+
+
 
 var address;
-var owner = '0x5452bac821e6D53DD69E4D5C5D65Bc188386eEA8';
-const defaultProvider = getDefaultProvider('https://ropsten.infura.io/v3/fee501e8a2874b79b1bf71b3a59b86ac');
+var owner = '0xf433A9d43c4f9FCD61e543B577dA585CEFD4F72D'; //todo - Does this need to be hard-coded?
+const defaultProvider = getDefaultProvider('https://kovan.infura.io/v3/fee501e8a2874b79b1bf71b3a59b86ac');
 
 async function getOwner() {
   var contract = new Contract(addresses.prescryptiveSmartContract, abis.prescryptiveSmartContract, defaultProvider);
@@ -34,7 +37,27 @@ async function getOwner() {
 
 //deposits funds to Aave (note: Only works on Kovan)
 async function depositToAave(provider) {
+  var contract = new Contract(addresses.lendingPool, abis.lendingPool, provider.getSigner(0));
 
+  let valueStr = prompt(
+    'How much DAI would you like to deposit into the smart contract?'
+  );
+
+  //if the user enters a null value, nothing happens
+  if (valueStr !== null) {
+
+    //todo - add some sort of test to see if allowance has been done before
+    if (await getAllowance(provider) === "0") {
+      alert("Please approve the transfer first");
+      await approveTransfer(provider);
+
+      //todo - Add event listener here so that the function does not continue until approval done
+    }
+
+    valueStr = ethers.utils.parseUnits(valueStr, 18); //if using USDC, this number needs to be 6
+
+    await contract.deposit(addresses.erc20, valueStr, addresses.prescryptiveSmartContract,0);
+  }
 }
 
 //gets the allowance of the connected address
@@ -58,7 +81,7 @@ async function getAllowance(provider) {
  * CONFIRM_WITHDRAW_ROLE in bytes32: 0xfddac4449a361e3913224ad159a928d20230d6569e72e52e9eec15d2838be8b5
  * @param {*} role 
  */
- async function checkForRole(role) {
+async function checkForRole(role) {
   var contract = new Contract(addresses.prescryptiveSmartContract, abis.prescryptiveSmartContract, defaultProvider);
 
   var bytes32role;
@@ -88,8 +111,8 @@ async function transfer(provider) {
   // Read more about ethers.js on https://docs.ethers.io/v5/api/contract/contract/
   var contract = new Contract(addresses.prescryptiveSmartContract, abis.prescryptiveSmartContract, provider.getSigner(0));
 
-  const valueStr = prompt(
-    'How much TEST would you like to deposit into the smart contract?'
+  let valueStr = prompt(
+    'How much DAI would you like to deposit into the smart contract?'
   );
 
   //if the user enters a null value, nothing happens
@@ -102,6 +125,8 @@ async function transfer(provider) {
 
       //todo - Add event listener here so that the function does not continue until approval done
     }
+
+    valueStr = ethers.utils.parseUnits(valueStr, 18); //if using USDC, this number needs to be 6
 
 
     await contract.depositFunds(valueStr);
@@ -147,11 +172,11 @@ function WalletButton({ provider, loadWeb3Modal, logoutOfWeb3Modal }) {
 //gets the balance of the smart contract
 //TODO - Fix this function with a better token
 async function getContractBalance() {
-  let contract = new Contract(addresses.erc20, abis.erc20, defaultProvider); 
+  let contract = new Contract(addresses.erc20, abis.erc20, defaultProvider);
 
   let value = await contract.balanceOf(addresses.prescryptiveSmartContract);
 
-  value = (value / 10^18);
+  value = (value / 10 ^ 18);
 
   console.log(value.toString());
 
@@ -164,7 +189,7 @@ async function getContractBalance() {
 function App() {
   const { loading, error, data } = useQuery(GET_TRANSFERS);
   const [provider, loadWeb3Modal, logoutOfWeb3Modal] = useWeb3Modal();
-  
+
   //the state for each of the roles, so that we can open the role-specific terminals
   const [isOwnerVar, isOwner] = useState(false);
   const [isWithdrawerVar, isWithdrawer] = useState(false);
@@ -206,18 +231,23 @@ function App() {
             <Button onClick={() => transfer(provider)}>
               Transfer to smart contract
             </Button>
-            <br/>
+            <br />
+
+            <Button onClick={() => depositToAave(provider)}>
+              Deposit to Aave
+            </Button>
+            <br />
 
             <Button onClick={() => approveTransfer(provider)}>
               Approve the transfer
             </Button>
-            <br/>
+            <br />
 
             <Button onClick={async () => setAllowance(await getAllowance(provider))}>
               Get allowance
             </Button>
             {allowance ? (<p>Allowance: {allowance} </p>) : (<> </>)}
-            <br/>
+            <br />
 
             <Button onClick={async () => {
               isOwner(await checkForRole("DEFAULT_ADMIN_ROLE"));
@@ -226,7 +256,7 @@ function App() {
             }}>
               Check for all roles
             </Button>
-            <br/>
+            <br />
           </>
 
         ) : <> <p>
@@ -236,27 +266,27 @@ function App() {
 
         {provider && isOwnerVar ? (
 
-          <><Owner provider={provider}/> </>
+          <><Owner provider={provider} /> </>
 
         ) : (
           <></>
-        ) }
+        )}
 
         {provider && isWithdrawerVar ? (
 
-        <><Withdrawer provider={provider}/> </>
+          <><Withdrawer provider={provider} /> </>
 
         ) : (
-        <></>
-        ) }
+          <></>
+        )}
 
         {provider && isConfirmerVar ? (
 
-        <><Confirmer provider={provider}/> </>
+          <><Confirmer provider={provider} /> </>
 
         ) : (
-        <></>
-        ) }
+          <></>
+        )}
 
 
 
@@ -264,7 +294,7 @@ function App() {
         <Button onClick={() => getOwner()}>
           Get Contract Owner
         </Button>
-        <br/>
+        <br />
 
         <Button onClick={async () => setContractBalanceState(await getContractBalance())}>
           Get Contract Balance
@@ -277,4 +307,4 @@ function App() {
   );
 }
 
-export default App;
+export default App
