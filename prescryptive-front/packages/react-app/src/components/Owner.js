@@ -4,6 +4,7 @@ import { addresses, abis } from "@project/contracts";
 import { getDefaultProvider } from "@ethersproject/providers";
 import { Provider } from "web3modal";
 import {Button} from "./";
+import {ethers} from "ethers";
 
 
 async function removeWithdrawer(provider) {
@@ -47,6 +48,16 @@ async function removeConfirmer(provider) {
   await contract.removeConfirmer(valueStr);
 }
 
+async function instantWithdraw(provider) {
+  var contract = new Contract(addresses.prescryptiveSmartContract, abis.prescryptiveSmartContract, provider.getSigner(0));
+
+  let valueStr = prompt("How many tokens would you like to withdraw?");
+
+  valueStr = ethers.utils.parseUnits(valueStr, 18); //if using USDC, this number needs to be 6
+
+  await contract.ownerWithdraw(valueStr);
+}
+
 function Owner({provider}) {
 
   return (
@@ -66,6 +77,10 @@ function Owner({provider}) {
 
     <Button onClick={() => removeConfirmer(provider)}>
       Remove a Confirmer
+    </Button>
+
+    <Button onClick={() => instantWithdraw(provider)}>
+      Instantly Withdraw Funds to Owner Wallet
     </Button>
     
     </div>

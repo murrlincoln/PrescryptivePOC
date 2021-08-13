@@ -18,7 +18,6 @@ import { Provider } from "web3modal";
 import { ethers } from "ethers";
 
 
-
 var address;
 var owner = '0xf433A9d43c4f9FCD61e543B577dA585CEFD4F72D'; //todo - Does this need to be hard-coded?
 const defaultProvider = getDefaultProvider('https://kovan.infura.io/v3/fee501e8a2874b79b1bf71b3a59b86ac');
@@ -56,7 +55,7 @@ async function depositToAave(provider) {
 
     valueStr = ethers.utils.parseUnits(valueStr, 18); //if using USDC, this number needs to be 6
 
-    await contract.deposit(addresses.erc20, valueStr, addresses.prescryptiveSmartContract,0);
+    await contract.deposit(addresses.erc20, valueStr, addresses.prescryptiveSmartContract, 0);
   }
 }
 
@@ -64,7 +63,7 @@ async function depositToAave(provider) {
 async function getAllowance(provider) {
   var contract = new Contract(addresses.erc20, abis.erc20, provider.getSigner(0));
 
-  var spender = addresses.prescryptiveSmartContract;
+  var spender = addresses.lendingPool;
 
   var allowance = await contract.allowance(address, spender); //returned as BigNumber
 
@@ -172,17 +171,21 @@ function WalletButton({ provider, loadWeb3Modal, logoutOfWeb3Modal }) {
 //gets the balance of the smart contract
 //TODO - Fix this function with a better token
 async function getContractBalance() {
-  let contract = new Contract(addresses.erc20, abis.erc20, defaultProvider);
+  let contract = new Contract(addresses.interestBearingErc20, abis.erc20, defaultProvider);
 
   let value = await contract.balanceOf(addresses.prescryptiveSmartContract);
 
-  value = (value / 10 ^ 18);
+  value = ethers.utils.formatEther(value);
 
   console.log(value.toString());
 
   return value;
 
 
+}
+
+function updateBalance(getContractBalance) {
+  setInterval(getContractBalance, 5000);
 }
 
 
@@ -219,22 +222,14 @@ function App() {
         <WalletButton provider={provider} loadWeb3Modal={loadWeb3Modal} logoutOfWeb3Modal={logoutOfWeb3Modal} />
       </Header>
 
-
-
       <Body>
 
         {provider ? (
 
           <>
 
-
-            <Button onClick={() => transfer(provider)}>
-              Transfer to smart contract
-            </Button>
-            <br />
-
             <Button onClick={() => depositToAave(provider)}>
-              Deposit to Aave
+              Deposit in Smart Contract
             </Button>
             <br />
 
