@@ -13,19 +13,22 @@ import Confirmer from "./components/Confirmer";
 
 import { addresses, abis } from "@project/contracts";
 import GET_TRANSFERS from "./graphql/subgraph";
-import { Provider } from "web3modal";
 
 import { ethers } from "ethers";
 
 
 var address;
-var owner = '0xf433A9d43c4f9FCD61e543B577dA585CEFD4F72D'; //todo - Does this need to be hard-coded?
+var owner;
 const defaultProvider = getDefaultProvider('https://kovan.infura.io/v3/fee501e8a2874b79b1bf71b3a59b86ac');
 
-async function getOwner() {
-  var contract = new Contract(addresses.prescryptiveSmartContract, abis.prescryptiveSmartContract, defaultProvider);
+//contract used for reads on prescryptive smart contract
+var defaultPrescryptiveContract = new Contract(addresses.prescryptiveSmartContract, abis.prescryptiveSmartContract, defaultProvider);
 
-  owner = await contract.owner();
+
+//Gets the current owner of the Prescryptive smart contract
+async function getOwner() {
+
+  owner = await defaultPrescryptiveContract.owner();
 
   console.log("Owner:", owner);
 
@@ -33,8 +36,40 @@ async function getOwner() {
 
 }
 
+/**
+ * Checks if the connected wallet has a specific role within the smart contract. The three roles are DEFAULT_ADMIN_ROLE,
+ * WITHDRAW_ROLE, and CONFIRM_WITHDRAW_ROLE. 
+ * DEFAULT_ADMIN_ROLE in bytes32: 0x0000000000000000000000000000000000000000000000000000000000000000
+ * WITHDRAW_ROLE in bytes32:  0x5d8e12c39142ff96d79d04d15d1ba1269e4fe57bb9d26f43523628b34ba108ec
+ * CONFIRM_WITHDRAW_ROLE in bytes32: 0xfddac4449a361e3913224ad159a928d20230d6569e72e52e9eec15d2838be8b5
+ * @param {*} role 
+ */
+ async function checkForRole(role) {
 
-//deposits funds to Aave (note: Only works on Kovan)
+  var bytes32role;
+
+  //get the bytes32 for each of the string roles
+  if (role === "DEFAULT_ADMIN_ROLE") {
+    bytes32role = '0x0000000000000000000000000000000000000000000000000000000000000000';
+  } else if (role === "WITHDRAW_ROLE") {
+    bytes32role = '0x5d8e12c39142ff96d79d04d15d1ba1269e4fe57bb9d26f43523628b34ba108ec';
+  } else if (role === "CONFIRM_WITHDRAW_ROLE") {
+    bytes32role = '0xfddac4449a361e3913224ad159a928d20230d6569e72e52e9eec15d2838be8b5';
+  } else {
+    console.log("User did not enter a valid role");
+    return false;
+  }
+
+  let result = await defaultPrescryptiveContract.hasRole(bytes32role, address);
+
+  console.log(role, result);
+
+  return result;
+}
+
+
+//deposits funds to Aave, where they become interest-bearing
+//Requires that approveTransfer() has been run first.
 async function depositToAave(provider) {
   var contract = new Contract(addresses.lendingPool, abis.lendingPool, provider.getSigner(0));
 
@@ -56,10 +91,16 @@ async function depositToAave(provider) {
     valueStr = ethers.utils.parseUnits(valueStr, 18); //if using USDC, this number needs to be 6
 
     await contract.deposit(addresses.erc20, valueStr, addresses.prescryptiveSmartContract, 0);
+
+    return;
   }
+
+  console.log("Failure, user did not input a value");
+
+
 }
 
-//gets the allowance of the connected address
+//Checks how much stablecoin the Aave lending pool can take from the user's wallet. 
 async function getAllowance(provider) {
   var contract = new Contract(addresses.erc20, abis.erc20, provider.getSigner(0));
 
@@ -72,71 +113,7 @@ async function getAllowance(provider) {
   return allowance.toString();
 }
 
-/**
- * Checks if the connected wallet has a specific role within the smart contract. The three roles are DEFAULT_ADMIN_ROLE,
- * WITHDRAW_ROLE, and CONFIRM_WITHDRAW_ROLE. 
- * DEFAULT_ADMIN_ROLE in bytes32: 0x0000000000000000000000000000000000000000000000000000000000000000
- * WITHDRAW_ROLE in bytes32:  0x5d8e12c39142ff96d79d04d15d1ba1269e4fe57bb9d26f43523628b34ba108ec
- * CONFIRM_WITHDRAW_ROLE in bytes32: 0xfddac4449a361e3913224ad159a928d20230d6569e72e52e9eec15d2838be8b5
- * @param {*} role 
- */
-async function checkForRole(role) {
-  var contract = new Contract(addresses.prescryptiveSmartContract, abis.prescryptiveSmartContract, defaultProvider);
 
-  var bytes32role;
-
-  if (role === "DEFAULT_ADMIN_ROLE") {
-    bytes32role = '0x0000000000000000000000000000000000000000000000000000000000000000';
-  } else if (role === "WITHDRAW_ROLE") {
-    bytes32role = '0x5d8e12c39142ff96d79d04d15d1ba1269e4fe57bb9d26f43523628b34ba108ec';
-  } else if (role === "CONFIRM_WITHDRAW_ROLE") {
-    bytes32role = '0xfddac4449a361e3913224ad159a928d20230d6569e72e52e9eec15d2838be8b5';
-  } else {
-    console.log("User did not enter a role");
-    return false;
-  }
-
-  let result = await contract.hasRole(bytes32role, address);
-
-  console.log(role, result);
-
-  return result;
-}
-
-//transfers a certain amount of tokens from connected address to the smart contract
-//requres approval to be run first
-async function transfer(provider) {
-  // Create an instance of an ethers.js Contract
-  // Read more about ethers.js on https://docs.ethers.io/v5/api/contract/contract/
-  var contract = new Contract(addresses.prescryptiveSmartContract, abis.prescryptiveSmartContract, provider.getSigner(0));
-
-  let valueStr = prompt(
-    'How much DAI would you like to deposit into the smart contract?'
-  );
-
-  //if the user enters a null value, nothing happens
-  if (valueStr !== null) {
-
-    //todo - add some sort of test to see if allowance has been done before
-    if (await getAllowance(provider) === "0") {
-      alert("Please approve the transfer first");
-      await approveTransfer(provider);
-
-      //todo - Add event listener here so that the function does not continue until approval done
-    }
-
-    valueStr = ethers.utils.parseUnits(valueStr, 18); //if using USDC, this number needs to be 6
-
-
-    await contract.depositFunds(valueStr);
-    console.log('Pending deposit...');
-
-    return;
-  }
-
-  console.log('Failure, user did not enter an amount to deposit or entered a 0 value');
-
-}
 
 
 //get the address of the connected account
@@ -145,13 +122,15 @@ async function getAddress(provider) {
   address = await signer.getAddress();
 }
 
-//approve the transfer using the ERC20 contract info
+//approve the ERC20 transfer to the lendingPool 
 async function approveTransfer(provider) {
   var contract = new Contract(addresses.erc20, abis.erc20, provider.getSigner(0));
 
-  await contract.approve(addresses.prescryptiveSmartContract, "79228162514260000000000000000");
+  await contract.approve(addresses.lendingPool, "79228162514260000000000000000");
 }
 
+
+//The component for the "connect wallet" button
 function WalletButton({ provider, loadWeb3Modal, logoutOfWeb3Modal }) {
   return (
     <Button
@@ -168,23 +147,10 @@ function WalletButton({ provider, loadWeb3Modal, logoutOfWeb3Modal }) {
   );
 }
 
-//gets the balance of the smart contract
-//TODO - Fix this function with a better token
-async function getContractBalance() {
-  let contract = new Contract(addresses.interestBearingErc20, abis.erc20, defaultProvider);
 
-  let value = await contract.balanceOf(addresses.prescryptiveSmartContract);
-
-  value = ethers.utils.formatEther(value);
-
-  console.log(value.toString());
-
-  return value;
-
-
-}
 
 function updateBalance(getContractBalance) {
+  getContractBalance();
   setInterval(getContractBalance, 5000);
 }
 
@@ -198,14 +164,26 @@ function App() {
   const [isWithdrawerVar, isWithdrawer] = useState(false);
   const [isConfirmerVar, isConfirmer] = useState(false);
 
-  const [contractBalance, setContractBalanceState] = useState();
+  const [userBalance, setUserBalance] = useState();
+  const [contractBalance, setContractBalance] = useState();
   const [allowance, setAllowance] = useState();
+
+
+  //changes the contractBalance state variable to reflect 
+  const getContractBalance = async () => {
+    let contract = new Contract(addresses.interestBearingErc20, abis.erc20, defaultProvider);
+    let value = await contract.balanceOf(addresses.prescryptiveSmartContract)
+    value = ethers.utils.formatEther(value);
+    value = Math.round(value*100) / 100;
+
+    setContractBalance(value);
+  };
+
 
   getOwner(); //stores the smart contract owner in owner var
 
   if (provider) {
     getAddress(provider); //stores the address in address var
-
   }
 
   React.useEffect(() => {
@@ -223,6 +201,8 @@ function App() {
       </Header>
 
       <Body>
+        {updateBalance(getContractBalance)}
+        <p>Smart Contract Balance: ${contractBalance}</p>
 
         {provider ? (
 
@@ -291,11 +271,6 @@ function App() {
         </Button>
         <br />
 
-        <Button onClick={async () => setContractBalanceState(await getContractBalance())}>
-          Get Contract Balance
-        </Button>
-
-        {contractBalance > 0 ? (<p>Balance: {contractBalance} </p>) : (<> </>)}
       </Body>
 
     </div>

@@ -1,8 +1,6 @@
 import React from "react";
 import { Contract } from "@ethersproject/contracts";
 import { addresses, abis } from "@project/contracts";
-import { getDefaultProvider } from "@ethersproject/providers";
-import { Provider } from "web3modal";
 import {Button} from "./";
 import {ethers} from "ethers";
 
@@ -11,7 +9,7 @@ async function confirmWithdraw(provider) {
     var contract = new Contract(addresses.prescryptiveSmartContract, abis.prescryptiveSmartContract, provider.getSigner(0));
   
     let valueStr = prompt("Please confirm the amount of tokens you want to withdraw");
-    
+
     valueStr = ethers.utils.parseUnits(valueStr, 18); //if using USDC, this number needs to be 6
   
     const addressStr = prompt("Please confirm the address to which you would like to withdraw");

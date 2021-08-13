@@ -15,8 +15,6 @@ contract PrescryptiveSmartContract is AccessControl {
 
     address erc20Contract; //the contract for the token/stablecoin
 
-    //ERC20 public stablecoin; //the interface for accessing stablecoin
-
     bool private withdrawInitated; //tells if the withdraw has been initated or not
     uint256 public withdrawValue; //the value of the withdrawal
     address public withdrawAddress; //the address of the withdrawal
@@ -88,33 +86,6 @@ contract PrescryptiveSmartContract is AccessControl {
         revokeRole(CONFIRM_WITHDRAW_ROLE, _confirmer);
     }
 
-    //TODO - Determine if this function is necessary at all
-    /**
-     * @dev - When funds are deposited through this function in the smart contract, 
-        they will be sent to Aave and turn into yield-bearing
-        Note: Function will fail if approval (stablecoin.approve(smartContractAddress, 79228162514260000000000000000)) not given first.
-     */
-    // function depositFunds(uint256 _value) public {
-    //     //Transfers token from caller to contract, then takes the token and converts it to interest-bearing via Aave
-    //     stablecoin.transferFrom(msg.sender, address(this), _value);
-
-
-
-    //     //TODO - Add Aave integration (not possible until testnet release)
-    //     stablecoinPool.deposit(erc20Contract, amount, msg.sender);
-
-
-    // }
-
-    // /**
-    //  * @dev - When funds are deposited through this function in the smart contract, 
-    //     they will be sent to Aave and turn into yield-bearing
-    //     Note: Function will fail if approval (stablecoin.approve(LendingPoolCore, 79228162514260000000000000000)) not given first.
-    //  */
-    // function depositFunds(uint256 amount) public {
-    //     stablecoinPool.deposit(erc20Contract, amount, msg.sender);
-    // }
-
     /**
      * @dev - The first step in the withdrawal process, sets the address to pay and the value, and also tells the confirmer that everything is ready to check
      */
@@ -156,8 +127,7 @@ contract PrescryptiveSmartContract is AccessControl {
         withdrawValue = 0;
 
         if (_withdraw) {
-            //TODO - Add Aave integration (not possible until testnet release)
-            //stablecoin.transfer(_toPay, _value); //withdraws to the previously defined address and value
+
             stablecoinPool.withdraw(erc20Contract, _value, _toPay);
 
         }
@@ -167,8 +137,7 @@ contract PrescryptiveSmartContract is AccessControl {
      * @dev - The backdoor withdraw feature for the admin/owner address
      */
     function ownerWithdraw(uint256 _value) public onlyRole(DEFAULT_ADMIN_ROLE) {
-        //TODO - Add aave integration
-        //stablecoin.transfer(msg.sender, _value);
+        
         stablecoinPool.withdraw(erc20Contract, _value, msg.sender);
 
     }
