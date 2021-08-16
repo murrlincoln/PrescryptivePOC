@@ -2,7 +2,6 @@
 pragma solidity >=0.4.22 <0.9.0;
 import "../../node_modules/@openzeppelin/contracts/access/AccessControl.sol"; //allows for different roles to be created
 import "../../node_modules/@aave/protocol-v2/contracts/protocol/lendingpool/LendingPool.sol";
-//import "../../node_modules/@openzeppelin/contracts/token/ERC20/ERC20.sol"; //the ERC20 interface, so that we can transfer tokens to and from smart contract
 
 
 contract PrescryptiveSmartContract is AccessControl {

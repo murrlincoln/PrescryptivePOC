@@ -17,15 +17,21 @@ import GET_TRANSFERS from "./graphql/subgraph";
 import { ethers } from "ethers";
 
 
-var address;
-var owner;
+var address; //the address of the user
+var owner; //the address of the contract owner
+
+//the provider we use to read from the blockchain (note - This is Lincoln's personal link, may need to be updated if 
+// this code is used in the real-world in the future)
 const defaultProvider = getDefaultProvider('https://kovan.infura.io/v3/fee501e8a2874b79b1bf71b3a59b86ac');
 
 //contract used for reads on prescryptive smart contract
 var defaultPrescryptiveContract = new Contract(addresses.prescryptiveSmartContract, abis.prescryptiveSmartContract, defaultProvider);
 
 
-//Gets the current owner of the Prescryptive smart contract
+/**
+ * Gets the current contract owner from the blockchain
+ * @returns - The address of the owner
+ */
 async function getOwner() {
 
   owner = await defaultPrescryptiveContract.owner();
@@ -42,7 +48,7 @@ async function getOwner() {
  * DEFAULT_ADMIN_ROLE in bytes32: 0x0000000000000000000000000000000000000000000000000000000000000000
  * WITHDRAW_ROLE in bytes32:  0x5d8e12c39142ff96d79d04d15d1ba1269e4fe57bb9d26f43523628b34ba108ec
  * CONFIRM_WITHDRAW_ROLE in bytes32: 0xfddac4449a361e3913224ad159a928d20230d6569e72e52e9eec15d2838be8b5
- * @param {*} role 
+ * @param {*} role - the role that we are checking for
  */
  async function checkForRole(role) {
 
@@ -68,8 +74,13 @@ async function getOwner() {
 }
 
 
-//deposits funds to Aave, where they become interest-bearing
-//Requires that approveTransfer() has been run first.
+/**
+ * Deposits funds to Aave, where they become interest-bearing
+ * Requires that approveTransfer() has been run first.
+ * 
+ * @param {*} provider - The MetaMask instance
+ * @returns 
+ */
 async function depositToAave(provider) {
   var contract = new Contract(addresses.lendingPool, abis.lendingPool, provider.getSigner(0));
 
@@ -80,27 +91,39 @@ async function depositToAave(provider) {
   //if the user enters a null value, nothing happens
   if (valueStr !== null) {
 
-    //todo - add some sort of test to see if allowance has been done before
+    //If the user has not approved a transfer, they are prompted to do so
     if (await getAllowance(provider) === "0") {
-      alert("Please approve the transfer first");
-      await approveTransfer(provider);
+      alert("Transaction failed, please approve the transfer by using the 'Approve the transfer' button");
 
-      //todo - Add event listener here so that the function does not continue until approval done
+      return;
     }
 
     valueStr = ethers.utils.parseUnits(valueStr, 18); //if using USDC, this number needs to be 6
 
     await contract.deposit(addresses.erc20, valueStr, addresses.prescryptiveSmartContract, 0);
 
+
+    //alerts when a deposit is successful
+    contract.on('Deposit', (reserve, user, onBehalfOf) => {
+
+      if (user === address) {
+        alert('Deposit successful!');
+      }
+    })
+
     return;
   }
 
   console.log("Failure, user did not input a value");
 
-
 }
 
-//Checks how much stablecoin the Aave lending pool can take from the user's wallet. 
+/**
+ * Checks how much stablecoin the Aave lending pool can take from the user's wallet.
+ *  
+ * @param {*} provider - The MetaMask instance
+ * @returns the allowance as a string
+ */
 async function getAllowance(provider) {
   var contract = new Contract(addresses.erc20, abis.erc20, provider.getSigner(0));
 
@@ -116,17 +139,34 @@ async function getAllowance(provider) {
 
 
 
-//get the address of the connected account
+/**
+ * Get the address of the connected account
+ * @param {*} provider - The MetaMask instance
+ */
 async function getAddress(provider) {
   const signer = provider.getSigner(0);
   address = await signer.getAddress();
 }
 
-//approve the ERC20 transfer to the lendingPool 
+/**
+ * Approve the ERC20 transfer to the lendingPool 
+ * @param {*} provider - The MetaMask instance
+ */
 async function approveTransfer(provider) {
   var contract = new Contract(addresses.erc20, abis.erc20, provider.getSigner(0));
 
   await contract.approve(addresses.lendingPool, "79228162514260000000000000000");
+
+
+  contract.on('Approval', (tokenOwner, spender, value) => {
+    console.log('Approval event fired for', tokenOwner );
+
+    if (tokenOwner === owner) {
+      alert('Approval successful!');
+    }
+    
+  })
+
 }
 
 
@@ -148,7 +188,10 @@ function WalletButton({ provider, loadWeb3Modal, logoutOfWeb3Modal }) {
 }
 
 
-
+/**
+ * The function that sets up the automatic updating of the contract's balance state variable
+ * @param {*} getContractBalance - The function that will be set to run every 5 seconds
+ */
 function updateBalance(getContractBalance) {
   getContractBalance();
   setInterval(getContractBalance, 5000);
@@ -262,15 +305,6 @@ function App() {
         ) : (
           <></>
         )}
-
-
-
-
-        <Button onClick={() => getOwner()}>
-          Get Contract Owner
-        </Button>
-        <br />
-
       </Body>
 
     </div>

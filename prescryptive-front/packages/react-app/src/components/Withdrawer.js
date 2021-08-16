@@ -1,12 +1,14 @@
 import React from "react";
 import { Contract } from "@ethersproject/contracts";
 import { addresses, abis } from "@project/contracts";
-import { getDefaultProvider } from "@ethersproject/providers";
-import { Provider } from "web3modal";
 import {Button} from "./";
 import {ethers} from "ethers";
 
-//initiates a withdrawal of a certain number of tokens to a specified address. Requires the WITHDRAW_ROLE role
+/**
+ * initiates a withdrawal of a certain number of tokens to a specified address. Requires the WITHDRAW_ROLE role
+ * @param {*} provider - The MetaMask instance
+ * @returns 
+ */
 async function initiateWithdraw(provider) {
     var contract = new Contract(addresses.prescryptiveSmartContract, abis.prescryptiveSmartContract, provider.getSigner(0))
   
@@ -15,15 +17,20 @@ async function initiateWithdraw(provider) {
     valueStr = ethers.utils.parseUnits(valueStr, 18); //if using USDC, this number needs to be 6
   
     const addressStr = prompt("What address would you like to send the tokens to?");
+
+    if (valueStr == null || addressStr == null) {
+      console.log("Value was null, returning");
+      return;
+  }
   
     //todo - listen for emit of withdraw initiated and code it into solidity
     await contract.initiateWithdraw(valueStr, addressStr);
   
-    alert("If the transaction was successful, ask the confirmer to confirm the transaction");
+    alert("Ask the confirmer to confirm the transaction");
   }
   
   
-  
+//The React component for the Withdrawer  
 function Withdrawer({provider}) {
 
     return (
