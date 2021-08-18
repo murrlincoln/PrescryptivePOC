@@ -60,8 +60,20 @@ module.exports = {
         return new HDWalletProvider(mnemonic, "https://kovan.infura.io/v3/fee501e8a2874b79b1bf71b3a59b86ac");
       },
       network_id: 42,
-      gasPrice: 20000000000, // 20 GWEI
-      gas: 3716887 // gas limit, set any number you want
+      gasPrice: 20000000000,
+      gas: 3716887 
+    },
+
+    mumbai: {
+      provider: function() {
+        return new HDWalletProvider(mnemonic, 'https://polygon-mumbai.infura.io/v3/fee501e8a2874b79b1bf71b3a59b86ac');
+      },
+      network_id: 80001,
+      confirmations: 2,
+      timeoutBlocks: 200,
+      skipDryRun: true,
+      gas: 6000000,
+      gasPrice: 10000000000
     }
     // Another network with more advanced options...
     // advanced: {

@@ -16,6 +16,10 @@ import GET_TRANSFERS from "./graphql/subgraph";
 
 import { ethers } from "ethers";
 
+import logo from "./cropped-pres-logo.png"
+
+import "./App.css"
+
 
 var address; //the address of the user
 var owner; //the address of the contract owner
@@ -190,11 +194,10 @@ function WalletButton({ provider, loadWeb3Modal, logoutOfWeb3Modal }) {
 
 /**
  * The function that sets up the automatic updating of the contract's balance state variable
- * @param {*} getContractBalance - The function that will be set to run every 5 seconds
+ * @param {*} fun - The function that will be set to run every 5 seconds
  */
-function updateBalance(getContractBalance) {
-  getContractBalance();
-  setInterval(getContractBalance, 5000);
+function updateBalance(fun) {
+  setInterval(fun, 1000);
 }
 
 
@@ -211,6 +214,8 @@ function App() {
   const [contractBalance, setContractBalance] = useState();
   const [allowance, setAllowance] = useState();
 
+  const [showRolesButton, setShowRolesButton] = useState(true);
+
 
   //changes the contractBalance state variable to reflect 
   const getContractBalance = async () => {
@@ -221,6 +226,18 @@ function App() {
 
     setContractBalance(value);
   };
+
+  const getUserBalance = async () => {
+    if (provider) {
+      let contract = new Contract(addresses.erc20, abis.erc20, defaultProvider);
+      let value = await contract.balanceOf(address);
+      value = ethers.utils.formatEther(value);
+      value = Math.round(value*100) / 100;
+  
+      setUserBalance(value);
+    }
+
+  }
 
 
   getOwner(); //stores the smart contract owner in owner var
@@ -239,18 +256,23 @@ function App() {
   return (
     <div>
       <Header>
-        {provider ? (<> <h3>Address: {address}</h3> </>) : (<> </>)}
+        {provider ? (<><img src={logo} alt="logo"/>
+        <h3>Address: {address} <div>{updateBalance(getUserBalance)}</div>
+        User Balance: ${userBalance}</h3> </>)
+        : (<> </>)}
+
         <WalletButton provider={provider} loadWeb3Modal={loadWeb3Modal} logoutOfWeb3Modal={logoutOfWeb3Modal} />
       </Header>
 
       <Body>
         {updateBalance(getContractBalance)}
+        
         <p>Smart Contract Balance: ${contractBalance}</p>
 
         {provider ? (
 
           <>
-
+          
             <Button onClick={() => depositToAave(provider)}>
               Deposit in Smart Contract
             </Button>
@@ -267,13 +289,16 @@ function App() {
             {allowance ? (<p>Allowance: {allowance} </p>) : (<> </>)}
             <br />
 
-            <Button onClick={async () => {
+            {showRolesButton ? (
+              <Button onClick={async () => {
+              setShowRolesButton(false);
               isOwner(await checkForRole("DEFAULT_ADMIN_ROLE"));
               isConfirmer(await checkForRole("CONFIRM_WITHDRAW_ROLE"));
               isWithdrawer(await checkForRole("WITHDRAW_ROLE"));
-            }}>
+              }}>
               Check for all roles
-            </Button>
+              </Button>)
+              : (<></>)}
             <br />
           </>
 

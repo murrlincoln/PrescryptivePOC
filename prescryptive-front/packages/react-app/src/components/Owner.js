@@ -3,6 +3,7 @@ import { Contract } from "@ethersproject/contracts";
 import { addresses, abis } from "@project/contracts";
 import {Button} from "./";
 import {ethers} from "ethers";
+import "./Owner.css";
 
 
 async function removeWithdrawer(provider) {
@@ -114,7 +115,7 @@ async function instantWithdraw(provider) {
 function Owner({provider}) {
 
   return (
-    <div>
+    <div className="test">
     Owner Only Functions:<br />
     <Button onClick={() => addWithdrawer(provider)}>
       Create new Withdrawer

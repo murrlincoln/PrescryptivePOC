@@ -65,7 +65,7 @@ function Confirmer({provider}) {
         </Button>
         
         <Button onClick={() => cancelWithdraw(provider)}>
-          Cancel Withdraw (Currently not working, will require re-deploy of smart contract)
+          Cancel Withdraw
         </Button>
 
         </div>
