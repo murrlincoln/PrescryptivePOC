@@ -20,11 +20,11 @@ A payment rails system to increase settlement time, improve efficiently, and off
 - Working frontend with buttons and conditional rendering
 - Some bugs and WIP items that were found along the way
 
-### Beta (in-progress)
-- Deployment on Mumbai (Polygon) testnet
+### Beta (Complete)
+- Deployment on Mumbai (Polygon) testnet (Not done since testnet stablecoins could not be found, but the rails are there)
 - Events and emits (Solidity) and event listeners (frontend) 
 - Aave integration
-- Frontend with better UI and greater automation (no more button clicking to confirm role)
+- Frontend with better UI and greater automation
 
 ### Proof of Concept Release
 - Deployment on Polygon mainnet
@@ -41,3 +41,4 @@ A payment rails system to increase settlement time, improve efficiently, and off
 ## How to Use
 - After cloning this repo, open README.md in prescryptive-front and follow the instructions
 - MetaMask is required to interact with the smart contract
+- Note, the @aave/protocol-v2 and @openzeppelin modules were modified to change the solidity version
