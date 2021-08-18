@@ -3,6 +3,7 @@ import { Contract } from "@ethersproject/contracts";
 import { addresses, abis } from "@project/contracts";
 import { Button } from "./";
 import { ethers } from "ethers";
+import "./Components.css";
 
 /**
  * initiates a withdrawal of a certain number of tokens to a specified address. Requires the WITHDRAW_ROLE role
@@ -34,7 +35,7 @@ async function initiateWithdraw(provider) {
 function Withdrawer({ provider }) {
 
   return (
-    <div>
+    <div className="div">
       Withdrawer Only Functions:<br />
       <Button onClick={() => initiateWithdraw(provider)}>
         Initiate Withdraw

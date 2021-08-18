@@ -3,7 +3,9 @@ import { Contract } from "@ethersproject/contracts";
 import { addresses, abis } from "@project/contracts";
 import {Button} from "./";
 import {ethers} from "ethers";
-import "./Owner.css";
+import "./Components.css";
+
+//the contract used for all function calls
 
 
 async function removeWithdrawer(provider) {
@@ -26,6 +28,34 @@ async function removeWithdrawer(provider) {
     }
 
   })
+}
+
+async function removeRole(provider, role) {
+  const contract = new Contract(addresses.prescryptiveSmartContract, abis.prescryptiveSmartContract, provider.getSigner(0));
+
+  const valueStr = prompt(
+    'What address would you like to remove the ', role, ' role from?'
+  )
+
+  if (valueStr === null) {
+    console.log("User entered null value");
+    return;
+  }
+
+  if (role === "Withdrawer") {
+    await contract.removeWithdrawer(valueStr);
+  } else if (role === "Confirmer") {
+    await contract.removeConfirmer(valueStr);
+  } //should never need an else return
+
+  contract.on('RoleRevoked', (role) => {
+    if (role === '0x5d8e12c39142ff96d79d04d15d1ba1269e4fe57bb9d26f43523628b34ba108ec') {
+      alert("Withdraw role successfully revoked!");
+    } else if (role === '0xfddac4449a361e3913224ad159a928d20230d6569e72e52e9eec15d2838be8b5') {
+      alert("Confirm role successfully revoked!");
+    }
+  });
+
 }
 
 async function addWithdrawer(provider) {
@@ -115,13 +145,13 @@ async function instantWithdraw(provider) {
 function Owner({provider}) {
 
   return (
-    <div className="test">
+    <div className="div">
     Owner Only Functions:<br />
     <Button onClick={() => addWithdrawer(provider)}>
       Create new Withdrawer
     </Button>
 
-    <Button onClick={() => removeWithdrawer(provider)}>
+    <Button onClick={() => removeRole(provider, "Withdrawer")}>
       Remove a Withdrawer
     </Button>
 
@@ -129,7 +159,7 @@ function Owner({provider}) {
       Create new Confirmer
     </Button>
 
-    <Button onClick={() => removeConfirmer(provider)}>
+    <Button onClick={() => removeRole(provider, "Confirmer")}>
       Remove a Confirmer
     </Button>
 

@@ -196,8 +196,9 @@ function WalletButton({ provider, loadWeb3Modal, logoutOfWeb3Modal }) {
  * The function that sets up the automatic updating of the contract's balance state variable
  * @param {*} fun - The function that will be set to run every 5 seconds
  */
+// **WARNING** - This function may cause excessive calls to infura API, it is removed for now
 function updateBalance(fun) {
-  setInterval(fun, 1000);
+  setInterval(fun, 100000); //high count due to issues with API call limit
 }
 
 
