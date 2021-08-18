@@ -194,7 +194,6 @@ function WalletButton({ provider, loadWeb3Modal, logoutOfWeb3Modal }) {
   );
 }
 
-
 /**
  * The function that sets up the automatic updating of the contract's balance state variable
  * @param {*} fun - The function that will be set to run every 5 seconds
@@ -234,6 +233,8 @@ function App() {
     setContractBalance(value);
   };
 
+  
+
   const getUserBalance = async () => {
     if (provider) {
       let contract = new Contract(addresses.erc20, abis.erc20, provider.getSigner(0)); //todo - May be able to use defaultProvider
@@ -250,8 +251,8 @@ function App() {
   }
 
   if (provider) {
-    getAddress(provider); //stores the address in address var
-    getOwner(provider); //stores the smart contract owner in owner var
+    getAddress(provider);
+    getOwner(provider);
   }
 
   React.useEffect(() => {
@@ -273,7 +274,7 @@ function App() {
       </Header>
 
       <Body>
-        {/*updateBalance(getContractBalance)*/}
+        {/*updateBalance(getContractBalance) commented out since infura calls were too expensive*/}
 
         <p>Smart Contract Balance: ${contractBalance}</p>
 

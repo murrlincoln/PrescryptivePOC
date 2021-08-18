@@ -1,8 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import { Contract } from "@ethersproject/contracts";
 import { addresses, abis } from "@project/contracts";
 import {Button} from "./";
 import {ethers} from "ethers";
+
+import "./Components.css"
 
 
 /**
@@ -53,12 +55,33 @@ async function confirmWithdraw(provider) {
     //todo - wait for emit
     alert("Withdrawal cancelled, please have the initalizer re-enter amount and address");
   }
+
+
+  function updateWithdraw(fun) {
+    setInterval(fun, 2000);
+  }
   
 //The React component for the Confirmer
 function Confirmer({provider}) {
 
+  const [pendingAddress, setPendingAddress] = useState();
+  const [pendingValue, setPendingValue] = useState();
+
+  const getWithdrawInfo = async () => {
+    let contract = new Contract(addresses.prescryptiveSmartContract, abis.prescryptiveSmartContract, provider.getSigner(0));
+    let toPay = await contract.withdrawAddress();
+    let value = await contract.withdrawValue();
+
+    value = ethers.utils.formatEther(value);
+
+    value = Math.round(value * 100) / 100;
+
+    setPendingValue(value);
+    setPendingAddress(toPay);
+  }
+
     return (
-        <div>
+        <div className="div">
         Confirmer Only Functions:<br />
         <Button onClick={() => confirmWithdraw(provider)}>
           Confirm Withdraw
@@ -67,6 +90,11 @@ function Confirmer({provider}) {
         <Button onClick={() => cancelWithdraw(provider)}>
           Cancel Withdraw
         </Button>
+
+        {updateWithdraw(getWithdrawInfo)}
+        {pendingValue > 0 ? (<>
+          <p>Pending send to address: {pendingAddress} of value: ${pendingValue}</p>
+         </>) : (<></>)}
 
         </div>
     )
