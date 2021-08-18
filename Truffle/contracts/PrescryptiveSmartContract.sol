@@ -3,7 +3,6 @@ pragma solidity >=0.4.22 <0.9.0;
 import "../../node_modules/@openzeppelin/contracts/access/AccessControl.sol"; //allows for different roles to be created
 import "../../node_modules/@aave/protocol-v2/contracts/protocol/lendingpool/LendingPool.sol";
 
-
 contract PrescryptiveSmartContract is AccessControl {
     //Role used for adding a withdrawer
     bytes32 public constant WITHDRAW_ROLE = keccak256("WITHDRAW_ROLE");
@@ -18,6 +17,11 @@ contract PrescryptiveSmartContract is AccessControl {
     uint256 public withdrawValue; //the value of the withdrawal
     address public withdrawAddress; //the address of the withdrawal
     address public owner; //DEFAULT_ADMIN_ROLE address
+
+    event withdrawInitatedByWithdrawer(
+        address indexed _to,
+        uint256 indexed _amount
+    );
 
     address public pool = 0xE0fBa4Fc209b4948668006B2bE61711b7f465bAe; //The Aave Smart Contract Pool (currently set to DAI on Kovan)
 
@@ -52,7 +56,7 @@ contract PrescryptiveSmartContract is AccessControl {
         revokeRole(DEFAULT_ADMIN_ROLE, owner);
         revokeRole(WITHDRAW_ROLE, owner);
         revokeRole(CONFIRM_WITHDRAW_ROLE, owner);
-        
+
         owner = _newOwner;
     }
 
@@ -62,12 +66,12 @@ contract PrescryptiveSmartContract is AccessControl {
     function addWithdrawer(address _newWithdrawer) public {
         grantRole(WITHDRAW_ROLE, _newWithdrawer);
     }
-    
+
     /**
      * @dev removes the confirmer role from an address, meaning they can no longer confirm withdraw of funds
      */
     function removeWithdrawer(address _withdrawer) public {
-        revokeRole(CONFIRM_WITHDRAW_ROLE, _withdrawer);
+        revokeRole(WITHDRAW_ROLE, _withdrawer);
     }
 
     //Should this be callable by WITHDRAW_ROLE, or require admin?
@@ -97,6 +101,8 @@ contract PrescryptiveSmartContract is AccessControl {
         withdrawAddress = _toPay;
 
         withdrawValue = _value;
+
+        emit withdrawInitatedByWithdrawer(_toPay, _value);
     }
 
     /**
@@ -126,9 +132,7 @@ contract PrescryptiveSmartContract is AccessControl {
         withdrawValue = 0;
 
         if (_withdraw) {
-
             stablecoinPool.withdraw(erc20Contract, _value, _toPay);
-
         }
     }
 
@@ -136,8 +140,6 @@ contract PrescryptiveSmartContract is AccessControl {
      * @dev - The backdoor withdraw feature for the admin/owner address
      */
     function ownerWithdraw(uint256 _value) public onlyRole(DEFAULT_ADMIN_ROLE) {
-        
         stablecoinPool.withdraw(erc20Contract, _value, msg.sender);
-
     }
 }

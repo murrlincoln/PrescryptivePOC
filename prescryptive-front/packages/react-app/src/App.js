@@ -36,11 +36,11 @@ var defaultPrescryptiveContract = new Contract(addresses.prescryptiveSmartContra
  * Gets the current contract owner from the blockchain
  * @returns - The address of the owner
  */
-async function getOwner() {
+async function getOwner(provider) {
 
-  owner = await defaultPrescryptiveContract.owner();
+  let contract = new Contract(addresses.prescryptiveSmartContract, abis.prescryptiveSmartContract, provider.getSigner(0));
 
-  console.log("Owner:", owner);
+  owner = await contract.owner();
 
   return owner;
 
@@ -54,9 +54,12 @@ async function getOwner() {
  * CONFIRM_WITHDRAW_ROLE in bytes32: 0xfddac4449a361e3913224ad159a928d20230d6569e72e52e9eec15d2838be8b5
  * @param {*} role - the role that we are checking for
  */
- async function checkForRole(role) {
+async function checkForRole(role, provider) {
 
   var bytes32role;
+
+  //todo: fix this to not use provider when possible
+  let contract = new Contract(addresses.prescryptiveSmartContract, abis.prescryptiveSmartContract, provider.getSigner(0));
 
   //get the bytes32 for each of the string roles
   if (role === "DEFAULT_ADMIN_ROLE") {
@@ -70,7 +73,7 @@ async function getOwner() {
     return false;
   }
 
-  let result = await defaultPrescryptiveContract.hasRole(bytes32role, address);
+  let result = await contract.hasRole(bytes32role, address);
 
   console.log(role, result);
 
@@ -97,7 +100,7 @@ async function depositToAave(provider) {
 
     //If the user has not approved a transfer, they are prompted to do so
     if (await getAllowance(provider) === "0") {
-      alert("Transaction failed, please approve the transfer by using the 'Approve the transfer' button");
+      alert("Transaction failed, please approve the transfer first by using the 'Approve the transfer' button");
 
       return;
     }
@@ -163,12 +166,12 @@ async function approveTransfer(provider) {
 
 
   contract.on('Approval', (tokenOwner, spender, value) => {
-    console.log('Approval event fired for', tokenOwner );
+    console.log('Approval event fired for', tokenOwner);
 
     if (tokenOwner === owner) {
       alert('Approval successful!');
     }
-    
+
   })
 
 }
@@ -196,10 +199,11 @@ function WalletButton({ provider, loadWeb3Modal, logoutOfWeb3Modal }) {
  * The function that sets up the automatic updating of the contract's balance state variable
  * @param {*} fun - The function that will be set to run every 5 seconds
  */
-// **WARNING** - This function may cause excessive calls to infura API, it is removed for now
+// **WARNING** - This function may cause excessive calls to infura API. Current soln: use provider.getSinger() for read tx
 function updateBalance(fun) {
-  setInterval(fun, 100000); //high count due to issues with API call limit
+  setInterval(fun, 2000);
 }
+
 
 
 function App() {
@@ -218,33 +222,36 @@ function App() {
   const [showRolesButton, setShowRolesButton] = useState(true);
 
 
+
   //changes the contractBalance state variable to reflect 
   const getContractBalance = async () => {
-    let contract = new Contract(addresses.interestBearingErc20, abis.erc20, defaultProvider);
+    let contract = new Contract(addresses.interestBearingErc20, abis.erc20, provider.getSigner(0)); //todo - Should be defaultProvider but there's call loop
     let value = await contract.balanceOf(addresses.prescryptiveSmartContract)
     value = ethers.utils.formatEther(value);
-    value = Math.round(value*100) / 100;
+
+    value = await Math.round(value * 100) / 100;
 
     setContractBalance(value);
   };
 
   const getUserBalance = async () => {
     if (provider) {
-      let contract = new Contract(addresses.erc20, abis.erc20, defaultProvider);
+      let contract = new Contract(addresses.erc20, abis.erc20, provider.getSigner(0)); //todo - May be able to use defaultProvider
       let value = await contract.balanceOf(address);
       value = ethers.utils.formatEther(value);
-      value = Math.round(value*100) / 100;
-  
+
+
+      value = Math.round(value * 100) / 100;
+
+
       setUserBalance(value);
     }
 
   }
 
-
-  getOwner(); //stores the smart contract owner in owner var
-
   if (provider) {
     getAddress(provider); //stores the address in address var
+    getOwner(provider); //stores the smart contract owner in owner var
   }
 
   React.useEffect(() => {
@@ -256,24 +263,26 @@ function App() {
 
   return (
     <div>
-      <Header>
-        {provider ? (<><img src={logo} alt="logo"/>
-        <h3>Address: {address} <div>{updateBalance(getUserBalance)}</div>
-        User Balance: ${userBalance}</h3> </>)
-        : (<> </>)}
+      <Header><img src={logo} alt="logo" />
+        {provider ? (<>
+          <h3>Address: {address} <div>{updateBalance(getUserBalance)}</div>
+            User Balance: ${userBalance}</h3> </>)
+          : (<> </>)}
 
         <WalletButton provider={provider} loadWeb3Modal={loadWeb3Modal} logoutOfWeb3Modal={logoutOfWeb3Modal} />
       </Header>
 
       <Body>
-        {updateBalance(getContractBalance)}
-        
+        {/*updateBalance(getContractBalance)*/}
+
         <p>Smart Contract Balance: ${contractBalance}</p>
 
         {provider ? (
 
           <>
-          
+
+            {updateBalance(getContractBalance)}
+
             <Button onClick={() => depositToAave(provider)}>
               Deposit in Smart Contract
             </Button>
@@ -292,12 +301,12 @@ function App() {
 
             {showRolesButton ? (
               <Button onClick={async () => {
-              setShowRolesButton(false);
-              isOwner(await checkForRole("DEFAULT_ADMIN_ROLE"));
-              isConfirmer(await checkForRole("CONFIRM_WITHDRAW_ROLE"));
-              isWithdrawer(await checkForRole("WITHDRAW_ROLE"));
+                setShowRolesButton(false);
+                isOwner(await checkForRole("DEFAULT_ADMIN_ROLE", provider));
+                isConfirmer(await checkForRole("CONFIRM_WITHDRAW_ROLE", provider));
+                isWithdrawer(await checkForRole("WITHDRAW_ROLE", provider));
               }}>
-              Check for all roles
+                Check for all roles
               </Button>)
               : (<></>)}
             <br />
