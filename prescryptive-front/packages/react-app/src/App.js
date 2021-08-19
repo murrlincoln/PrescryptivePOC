@@ -9,8 +9,6 @@ import useWeb3Modal from "./hooks/useWeb3Modal";
 import Owner from "./components/Owner";
 import Withdrawer from "./components/Withdrawer";
 import Confirmer from "./components/Confirmer";
-import PendingTx from "./components/PendingTx";
-
 
 import { addresses, abis } from "@project/contracts";
 import GET_TRANSFERS from "./graphql/subgraph";
@@ -89,7 +87,7 @@ async function checkForRole(role, provider) {
  * @param {*} provider - The MetaMask instance
  * @returns 
  */
-async function depositToAave(provider) {
+async function depositToAave(provider, setTxPending) {
   var contract = new Contract(addresses.lendingPool, abis.lendingPool, provider.getSigner(0));
 
   let valueStr = prompt(
@@ -178,7 +176,11 @@ async function approveTransfer(provider) {
 }
 
 
-//The component for the "connect wallet" button
+/**
+ * The component for the "connect wallet" button
+ * @param {*} param0 - The state variables for the provider and login/out 
+ * @returns 
+ */
 function WalletButton({ provider, loadWeb3Modal, logoutOfWeb3Modal }) {
   return (
     <Button
@@ -204,8 +206,10 @@ function updateBalance(fun) {
   setInterval(fun, 2000);
 }
 
-
-
+/**
+ * The main React component 
+ * @returns The react component
+ */
 function App() {
   const { loading, error, data } = useQuery(GET_TRANSFERS);
   const [provider, loadWeb3Modal, logoutOfWeb3Modal] = useWeb3Modal();
@@ -221,7 +225,7 @@ function App() {
 
   const [showRolesButton, setShowRolesButton] = useState(true);
 
-
+  const [txPending, setTxPending] = useState(true);
 
   //changes the contractBalance state variable to reflect 
   const getContractBalance = async () => {
@@ -234,17 +238,13 @@ function App() {
     setContractBalance(value);
   };
 
-  
-
   const getUserBalance = async () => {
     if (provider) {
       let contract = new Contract(addresses.erc20, abis.erc20, provider.getSigner(0)); //todo - May be able to use defaultProvider
       let value = await contract.balanceOf(address);
       value = ethers.utils.formatEther(value);
 
-
       value = Math.round(value * 100) / 100;
-
 
       setUserBalance(value);
     }
@@ -270,11 +270,8 @@ function App() {
           <h3>Address: {address} <div>{updateBalance(getUserBalance)}</div>
             User Balance: ${userBalance}</h3> </>)
           : (<> </>)}
-
         <WalletButton provider={provider} loadWeb3Modal={loadWeb3Modal} logoutOfWeb3Modal={logoutOfWeb3Modal} />
       </Header>
-
-      <PendingTx />
 
       <Body>
         {/*updateBalance(getContractBalance) commented out since infura calls were too expensive*/}
@@ -287,7 +284,7 @@ function App() {
 
             {updateBalance(getContractBalance)}
 
-            <Button onClick={() => depositToAave(provider)}>
+            <Button onClick={() => depositToAave(provider, setTxPending)}>
               Deposit in Smart Contract
             </Button>
             <br />
@@ -344,6 +341,7 @@ function App() {
         ) : (
           <></>
         )}
+
       </Body>
 
     </div>
