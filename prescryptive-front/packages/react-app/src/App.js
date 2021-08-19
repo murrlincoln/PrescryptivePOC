@@ -9,6 +9,7 @@ import useWeb3Modal from "./hooks/useWeb3Modal";
 import Owner from "./components/Owner";
 import Withdrawer from "./components/Withdrawer";
 import Confirmer from "./components/Confirmer";
+import PendingTx from "./components/PendingTx";
 
 
 import { addresses, abis } from "@project/contracts";
@@ -28,7 +29,7 @@ var owner; //the address of the contract owner
 // this code is used in the real-world in the future)
 const defaultProvider = getDefaultProvider('https://kovan.infura.io/v3/fee501e8a2874b79b1bf71b3a59b86ac');
 
-//contract used for reads on prescryptive smart contract
+//contract used for reads on prescryptive smart contract. Not used at the moment due to running into issues with the Infura calls
 var defaultPrescryptiveContract = new Contract(addresses.prescryptiveSmartContract, abis.prescryptiveSmartContract, defaultProvider);
 
 
@@ -100,7 +101,7 @@ async function depositToAave(provider) {
 
     //If the user has not approved a transfer, they are prompted to do so
     if (await getAllowance(provider) === "0") {
-      alert("Transaction failed, please approve the transfer first by using the 'Approve the transfer' button");
+      alert("Please approve the transfer first by using the 'Approve the transfer' button");
 
       return;
     }
@@ -168,7 +169,7 @@ async function approveTransfer(provider) {
   contract.on('Approval', (tokenOwner, spender, value) => {
     console.log('Approval event fired for', tokenOwner);
 
-    if (tokenOwner === owner) {
+    if (tokenOwner === address) {
       alert('Approval successful!');
     }
 
@@ -198,7 +199,7 @@ function WalletButton({ provider, loadWeb3Modal, logoutOfWeb3Modal }) {
  * The function that sets up the automatic updating of the contract's balance state variable
  * @param {*} fun - The function that will be set to run every 5 seconds
  */
-// **WARNING** - This function may cause excessive calls to infura API. Current soln: use provider.getSinger() for read tx
+// **WARNING** - This function may cause excessive calls to infura API. Current soln: use provider.getSinger() for read tx and don't update balance when wallet isn't connected
 function updateBalance(fun) {
   setInterval(fun, 2000);
 }
@@ -228,7 +229,7 @@ function App() {
     let value = await contract.balanceOf(addresses.prescryptiveSmartContract)
     value = ethers.utils.formatEther(value);
 
-    value = await Math.round(value * 100) / 100;
+    value = Math.round(value * 100) / 100;
 
     setContractBalance(value);
   };
@@ -272,6 +273,8 @@ function App() {
 
         <WalletButton provider={provider} loadWeb3Modal={loadWeb3Modal} logoutOfWeb3Modal={logoutOfWeb3Modal} />
       </Header>
+
+      <PendingTx />
 
       <Body>
         {/*updateBalance(getContractBalance) commented out since infura calls were too expensive*/}
