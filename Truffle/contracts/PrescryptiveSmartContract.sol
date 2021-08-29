@@ -23,7 +23,7 @@ contract PrescryptiveSmartContract is AccessControl {
         uint256 indexed _amount
     );
 
-    address public pool = 0xE0fBa4Fc209b4948668006B2bE61711b7f465bAe; //The Aave Smart Contract Pool (currently set to DAI on Kovan)
+    address public pool = 0x9198F13B08E299d85E096929fA9781A1E3d5d827; //The Aave Smart Contract Pool (currently set to USDC on Mumbai)
 
     LendingPool private stablecoinPool = LendingPool(pool); //the lending pool
 

@@ -25,7 +25,7 @@ var owner; //the address of the contract owner
 
 //the provider we use to read from the blockchain (note - This is Lincoln's personal link, may need to be updated if 
 // this code is used in the real-world in the future)
-const defaultProvider = getDefaultProvider('https://kovan.infura.io/v3/fee501e8a2874b79b1bf71b3a59b86ac');
+const defaultProvider = getDefaultProvider('https://polygon-mumbai.infura.io/v3/fee501e8a2874b79b1bf71b3a59b86ac');
 
 //contract used for reads on prescryptive smart contract. Not used at the moment due to running into issues with the Infura calls
 var defaultPrescryptiveContract = new Contract(addresses.prescryptiveSmartContract, abis.prescryptiveSmartContract, defaultProvider);
@@ -91,7 +91,7 @@ async function depositToAave(provider, setTxPending) {
   var contract = new Contract(addresses.lendingPool, abis.lendingPool, provider.getSigner(0));
 
   let valueStr = prompt(
-    'How much DAI would you like to deposit into the smart contract?'
+    'How much USDC would you like to deposit into the smart contract?'
   );
 
   //if the user enters a null value, nothing happens
@@ -104,7 +104,7 @@ async function depositToAave(provider, setTxPending) {
       return;
     }
 
-    valueStr = ethers.utils.parseUnits(valueStr, 18); //if using USDC, this number needs to be 6
+    valueStr = ethers.utils.parseUnits(valueStr, 6); //if using USDC, this number needs to be 6
 
     await contract.deposit(addresses.erc20, valueStr, addresses.prescryptiveSmartContract, 0);
 
@@ -114,7 +114,9 @@ async function depositToAave(provider, setTxPending) {
 
       if (user === address) {
         alert('Deposit successful!');
+        return;
       }
+
     })
 
     return;
@@ -203,7 +205,7 @@ function WalletButton({ provider, loadWeb3Modal, logoutOfWeb3Modal }) {
  */
 // **WARNING** - This function may cause excessive calls to infura API. Current soln: use provider.getSinger() for read tx and don't update balance when wallet isn't connected
 function updateBalance(fun) {
-  setInterval(fun, 2000);
+  setInterval(fun, 1000);
 }
 
 /**
@@ -231,8 +233,7 @@ function App() {
   const getContractBalance = async () => {
     let contract = new Contract(addresses.interestBearingErc20, abis.erc20, provider.getSigner(0)); //todo - Should be defaultProvider but there's call loop
     let value = await contract.balanceOf(addresses.prescryptiveSmartContract)
-    value = ethers.utils.formatEther(value);
-
+    value = ethers.utils.formatUnits(value, 6);
     value = Math.round(value * 100) / 100;
 
     setContractBalance(value);
@@ -242,8 +243,7 @@ function App() {
     if (provider) {
       let contract = new Contract(addresses.erc20, abis.erc20, provider.getSigner(0)); //todo - May be able to use defaultProvider
       let value = await contract.balanceOf(address);
-      value = ethers.utils.formatEther(value);
-
+      value = ethers.utils.formatUnits(value, 6);
       value = Math.round(value * 100) / 100;
 
       setUserBalance(value);

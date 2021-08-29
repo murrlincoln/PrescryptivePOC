@@ -18,7 +18,7 @@
  *
  */
 
-const HDWalletProvider = require('../node_modules/truffle-hdwallet-provider');
+const HDWalletProvider = require('../node_modules/@truffle/hdwallet-provider'); //no longer need truffle-hdwallet-provider
 // const infuraKey = "fj4jll3k.....";
 //
 // const fs = require('fs');
@@ -66,7 +66,7 @@ module.exports = {
 
     mumbai: {
       provider: function() {
-        return new HDWalletProvider(mnemonic, 'https://polygon-mumbai.infura.io/v3/fee501e8a2874b79b1bf71b3a59b86ac');
+        return new HDWalletProvider(mnemonic, 'https://rpc-mumbai.maticvigil.com/v1/e866b3efeb14e3f31eaaa75570d42fa6d35f4750');
       },
       network_id: 80001,
       confirmations: 2,

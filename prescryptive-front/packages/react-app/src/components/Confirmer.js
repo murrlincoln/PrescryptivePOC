@@ -18,7 +18,7 @@ async function confirmWithdraw(provider) {
   
     let valueStr = prompt("Please confirm the amount of tokens you want to withdraw");
 
-    valueStr = ethers.utils.parseUnits(valueStr, 18); //if using USDC, this number needs to be 6
+    valueStr = ethers.utils.parseUnits(valueStr, 6); //if using USDC, this number needs to be 6
   
     const addressStr = prompt("Please confirm the address to which you would like to withdraw");
 
@@ -58,7 +58,7 @@ async function confirmWithdraw(provider) {
 
 
   function updateWithdraw(fun) {
-    setInterval(fun, 2000);
+    setInterval(fun, 5000);
   }
   
 //The React component for the Confirmer
@@ -72,8 +72,8 @@ function Confirmer({provider}) {
     let toPay = await contract.withdrawAddress();
     let value = await contract.withdrawValue();
 
-    value = ethers.utils.formatEther(value);
 
+    value = ethers.utils.formatUnits(value, 6);
     value = Math.round(value * 100) / 100;
 
     setPendingValue(value);

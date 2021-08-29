@@ -5,9 +5,9 @@ import WalletConnectProvider from "@walletconnect/web3-provider";
 
 // Enter a valid infura key here to avoid being rate limited
 // You can get a key for free at https://infura.io/register
-const INFURA_ID = "x";
+const INFURA_ID = "https://rpc-mumbai.maticvigil.com/v1/e866b3efeb14e3f31eaaa75570d42fa6d35f4750";
 
-const NETWORK_NAME = "kovan";
+const NETWORK_NAME = "maticmum";
 
 function useWeb3Modal(config = {}) {
   const [provider, setProvider] = useState();

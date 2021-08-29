@@ -1,10 +1,11 @@
-// Address for Kovan smart contracts
+// Address for Mumbai smart contracts
 const addresses = {
-  prescryptiveSmartContract: "0x9166d22464c89e86973370622E230ABa950d5273",
-  erc20: '0xFf795577d9AC8bD7D90Ee22b6C1703490b6512FD', //DAI on Kovan
-  interestBearingErc20: '0xdcf0af9e59c002fa3aa091a46196b37530fd48a8', //aDAI on Kovan
-  lendingPool: '0xe0fba4fc209b4948668006b2be61711b7f465bae' //Aave DAI smart contract on Kovan
+  prescryptiveSmartContract: "0x572198534e9789311fEad2B594bF6d1B2Bd715cE",
+  erc20: '0x2058A9D7613eEE744279e3856Ef0eAda5FCbaA7e', //USDC on Mumbai
+  interestBearingErc20: '0x2271e3Fef9e15046d09E1d78a8FF038c691E9Cf9', //amUSDC on Mumbai
+  lendingPool: '0x9198F13B08E299d85E096929fA9781A1E3d5d827' //Aave USDC smart contract on Mumbai
 
 };
+
 
 export default addresses;

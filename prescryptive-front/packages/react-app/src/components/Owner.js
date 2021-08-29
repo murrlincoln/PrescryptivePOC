@@ -64,14 +64,16 @@ async function removeRole(contract, role) {
 async function instantWithdraw(provider, contract) {
   var poolContract = new Contract(addresses.lendingPool, abis.lendingPool, provider.getSigner(0));
 
-  let valueStr = prompt("How many tokens would you like to withdraw?");
+  let valueStr = prompt("How much USDC would you like to withdraw?");
 
   if (valueStr === null) {
     console.log("User entered null value");
     return;
   }
 
-  valueStr = ethers.utils.parseUnits(valueStr, 18); //if using USDC, this number needs to be 6
+  valueStr = ethers.utils.parseUnits(valueStr, 6); //if using USDC, this number needs to be 6
+
+  console.log(valueStr.toString())
 
   await contract.ownerWithdraw(valueStr);
 

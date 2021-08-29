@@ -22,7 +22,7 @@ async function initiateWithdraw(provider) {
     return;
   }
 
-  valueStr = ethers.utils.parseUnits(valueStr, 18); //if using USDC, this number needs to be 6
+  valueStr = ethers.utils.parseUnits(valueStr, 6); //if using USDC, this number needs to be 6
 
   //todo - listen for emit of withdraw initiated and code it into solidity
   await contract.initiateWithdraw(valueStr, addressStr);
